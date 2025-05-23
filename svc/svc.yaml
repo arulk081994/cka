@@ -10,24 +10,25 @@ metadata:
     app: labnginx
   name: labnginx
   namespace: default
-  resourceVersion: "7324"
+  resourceVersion: "10263"
   uid: 0dd3e3ff-7d13-4afa-bc39-e7b991b62d5c
 spec:
   clusterIP: 10.110.151.96
   clusterIPs:
   - 10.110.151.96
+  externalTrafficPolicy: Cluster
   internalTrafficPolicy: Cluster
   ipFamilies:
   - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - port: 80
+  - nodePort: 32567
+    port: 80
     protocol: TCP
     targetPort: 80
   selector:
     app: labnginx
   sessionAffinity: None
-  type: ClusterIP
+  type: NodePort
 status:
   loadBalancer: {}
-~
