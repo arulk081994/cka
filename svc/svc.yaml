@@ -1,0 +1,33 @@
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2025-05-23T13:41:56Z"
+  labels:
+    app: labnginx
+  name: labnginx
+  namespace: default
+  resourceVersion: "7324"
+  uid: 0dd3e3ff-7d13-4afa-bc39-e7b991b62d5c
+spec:
+  clusterIP: 10.110.151.96
+  clusterIPs:
+  - 10.110.151.96
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: labnginx
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
+~
