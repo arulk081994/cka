@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: labinit
+  name: labinit
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: labinit
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: labinit
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+      initContainers:
+      - command:
+        - sleep
+        - "30"
+        image: busybox
+        name: busybox
+status: {}
