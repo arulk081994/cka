@@ -62,61 +62,46 @@ Replace <NODE_NAME> with the actual node name.
 
 Apply with:
 
-bash
-Copy
-Edit
-kubectl apply -f expander.yaml
+1. kubectl apply -f expander.yaml
+
 2. Access the Pod
-bash
-Copy
-Edit
+
 kubectl exec -it disk-expander -n kube-system -- /bin/bash
+
 3. Install Tools in Pod
-bash
-Copy
-Edit
+
 chroot /host
 yum install cloud-utils-growpart -y   # For AL2
 # OR
 apt update && apt install cloud-guest-utils -y  # For Ubuntu
+
+
 4. Resize the Partition
 Check the device first:
 
-bash
-Copy
-Edit
 lsblk
+
 Then expand:
 
-bash
-Copy
-Edit
 growpart /dev/xvda 1
+
 5. Resize the File System
+
 If using XFS (common on Amazon Linux 2):
 
-bash
-Copy
-Edit
 xfs_growfs -d /
 If using ext4 (common on Ubuntu):
-
-bash
-Copy
-Edit
 resize2fs /dev/xvda1
+
 6. Verify
-bash
-Copy
-Edit
+
 df -h /
 Output should reflect the new size (e.g., 200 GB total).
 
 7. Clean Up
-bash
-Copy
-Edit
+
 kubectl delete pod disk-expander -n kube-system
+
 🧠 Key Learnings
 You can safely expand the root volume without reboot or SSH.
 
