@@ -1,0 +1,140 @@
+
+📌 Objective
+To describe a safe and repeatable method to expand the root disk on an EKS worker node when:
+
+EBS volume is already resized (e.g., from 100 GB to 200 GB)
+
+SSH access is restricted due to security policies
+
+Filesystem and partition did not auto-expand
+
+Node must remain online (no reboot/downtime)
+
+🛠️ Tools & Requirements
+Tool	Purpose
+Kubernetes DaemonSet/Pod	Run commands on the node
+chroot	Access and operate within the node OS
+growpart	Resize disk partitions
+xfs_growfs / resize2fs	Expand file system (XFS or ext4)
+hostPath volume mount	Mount node root filesystem into pod
+
+🧪 Problem Summary
+Detail	Value
+Node Type	Amazon EKS (Managed Node Group)
+Disk Usage	83% of root volume (100 GB)
+SSH Access	Disabled (policy restricted)
+EBS Volume Resized	Yes, from 100 GB to 200 GB
+Filesystem Auto-Grow	❌ Did not auto-expand
+
+🔧 Solution Overview
+We'll deploy a privileged Kubernetes pod that mounts the host root (/) and uses chroot to operate directly within the node's OS environment.
+
+✅ Step-by-Step Solution
+1. Deploy a Privileged Pod
+Here’s a minimal YAML to deploy the pod to the affected node:
+
+yaml
+Copy
+Edit
+apiVersion: v1
+kind: Pod
+metadata:
+  name: disk-expander
+  namespace: kube-system
+spec:
+  hostPID: true
+  nodeSelector:
+    kubernetes.io/hostname: <NODE_NAME>
+  containers:
+  - name: expander
+    image: amazonlinux
+    securityContext:
+      privileged: true
+    command: [ "sleep", "3600" ]
+    volumeMounts:
+    - name: rootfs
+      mountPath: /host
+  volumes:
+  - name: rootfs
+    hostPath:
+      path: /
+Replace <NODE_NAME> with the actual node name.
+
+Apply with:
+
+bash
+Copy
+Edit
+kubectl apply -f expander.yaml
+2. Access the Pod
+bash
+Copy
+Edit
+kubectl exec -it disk-expander -n kube-system -- /bin/bash
+3. Install Tools in Pod
+bash
+Copy
+Edit
+chroot /host
+yum install cloud-utils-growpart -y   # For AL2
+# OR
+apt update && apt install cloud-guest-utils -y  # For Ubuntu
+4. Resize the Partition
+Check the device first:
+
+bash
+Copy
+Edit
+lsblk
+Then expand:
+
+bash
+Copy
+Edit
+growpart /dev/xvda 1
+5. Resize the File System
+If using XFS (common on Amazon Linux 2):
+
+bash
+Copy
+Edit
+xfs_growfs -d /
+If using ext4 (common on Ubuntu):
+
+bash
+Copy
+Edit
+resize2fs /dev/xvda1
+6. Verify
+bash
+Copy
+Edit
+df -h /
+Output should reflect the new size (e.g., 200 GB total).
+
+7. Clean Up
+bash
+Copy
+Edit
+kubectl delete pod disk-expander -n kube-system
+🧠 Key Learnings
+You can safely expand the root volume without reboot or SSH.
+
+chroot /host within a privileged pod gives full OS access.
+
+Disk resizing is a 2-step process:
+
+Resize partition (growpart)
+
+Resize filesystem (xfs_growfs or resize2fs)
+
+Kubernetes-native tools can handle node-level operations securely.
+
+📌 Recommendations
+Recommendation	Details
+Set disk alerts	Use CloudWatch or Prometheus alerts
+Automate expansion check	Use DaemonSet or script to check unexpanded nodes
+Log rotation & cleanup	Prevent logs from filling disk
+RBAC restrictions	Limit who can deploy privileged pods
+
+Would you like this as a downloadable PDF, Confluence doc format, or markdown for GitHub/Docs site?
