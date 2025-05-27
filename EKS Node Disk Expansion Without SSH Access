@@ -137,4 +137,3 @@ Automate expansion check	Use DaemonSet or script to check unexpanded nodes
 Log rotation & cleanup	Prevent logs from filling disk
 RBAC restrictions	Limit who can deploy privileged pods
 
-Would you like this as a downloadable PDF, Confluence doc format, or markdown for GitHub/Docs site?
